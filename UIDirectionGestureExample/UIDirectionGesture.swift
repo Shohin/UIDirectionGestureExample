@@ -45,7 +45,14 @@ public class UIDirectionGesture: UIPanGestureRecognizer {
     
     var beginPosition: CGPoint = CGPoint.zero
     
+    var previousTranslation: CGPoint = CGPoint.zero
     var lastTranslation: CGPoint = CGPoint.zero
+    
+    var translation: CGPoint {
+        get {
+            return self.translationInView(self.view!)
+        }
+    }
     
     var action: closure?
     
@@ -64,6 +71,12 @@ public class UIDirectionGesture: UIPanGestureRecognizer {
         self.addTarget(self, action: "gesture:")
     }
     
+    public override func setTranslation(translation: CGPoint, inView view: UIView?) {
+        self.previousTranslation = self.translationInView(view)
+        super.setTranslation(translation, inView: view)
+        self.lastTranslation = translation
+    }
+    
     func gesture(sender: UIPanGestureRecognizer) {
         let view = sender.view
         let translation = sender.translationInView(view)
@@ -80,19 +93,19 @@ public class UIDirectionGesture: UIPanGestureRecognizer {
         }
         /////
         func checkRight() -> Bool {
-            return translation.x > 0 && translation.y < positiveMax && translation.y > negativeMax
+            return translation.x >= 0 && translation.y < positiveMax && translation.y > negativeMax
         }
         
         func checkLeft() -> Bool {
-            return translation.x < 0 && translation.y < positiveMax && translation.y > negativeMax
+            return translation.x <= 0 && translation.y < positiveMax && translation.y > negativeMax
         }
         
         func checkUp() -> Bool {
-            return translation.y > 0 && translation.x < positiveMax && translation.x > negativeMax
+            return translation.y >= 0 && translation.x < positiveMax && translation.x > negativeMax
         }
         
         func checkDown() -> Bool {
-            return translation.y < 0 && translation.x < positiveMax && translation.x > negativeMax
+            return translation.y <= 0 && translation.x < positiveMax && translation.x > negativeMax
         }
         
         /////
@@ -180,13 +193,8 @@ public class UIDirectionGesture: UIPanGestureRecognizer {
             }
         }
         
-        ////////
-        switch sender.state {
-        case .Began:
-            self.beginPosition = view!.center
-        case .Changed:
-            self.lastTranslation = translation
-        case .Ended:
+        //////
+        func direct() {
             print("last transition: \(self.lastTranslation)")
             switch self.directionState {
             case UIDirectionGestureState.Right:
@@ -214,6 +222,16 @@ public class UIDirectionGesture: UIPanGestureRecognizer {
             default:
                 break
             }
+        }
+        
+        ////////
+        switch sender.state {
+        case .Began:
+            self.beginPosition = view!.center
+        case .Changed:
+            direct()
+        case .Ended:
+            direct()
             //        case .Cancelled:
             //            break
             //        case .Failed:
@@ -223,6 +241,5 @@ public class UIDirectionGesture: UIPanGestureRecognizer {
         default:
             break
         }
-        self.lastTranslation = translation
     }
 }

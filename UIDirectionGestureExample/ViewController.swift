@@ -13,9 +13,15 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         let directionGesture = UIDirectionGesture(directionState: UIDirectionGestureState.All) { (gesture: UIDirectionGesture, state) -> (Void) in
-            let view = gesture.view!
-            let translation = gesture.lastTranslation
-            view.center = CGPoint(x: translation.x + view.center.x, y: translation.y + view.center.y)
+            switch state {
+            case .Ended:
+                let view = gesture.view!
+                let translation = gesture.translation
+                view.center = CGPoint(x: translation.x + view.center.x, y: translation.y + view.center.y)
+                gesture.setTranslation(CGPoint.zero, inView: view)
+            default:
+                break
+            }
         }
         
         let gestureView = UIView(frame: CGRect(x: 0, y: 0, width: 200, height: 400))
@@ -25,6 +31,26 @@ class ViewController: UIViewController {
         gestureView.userInteractionEnabled = true
         gestureView.addGestureRecognizer(directionGesture)
         self.view.addSubview(gestureView)
+        
+        let movingGesture = UIMoveGesture(directionState: UIDirectionGestureState.All) { (gesture: UIDirectionGesture, state) -> (Void) in
+            let moveGest = gesture as! UIMoveGesture
+            switch state {
+            case .Changed:
+                moveGest.move()
+            case .Ended:
+                moveGest.changePosition()
+            default:
+                break
+            }
+            
+        }
+        
+        let moveGestureView = UIView(frame: CGRect(x: 100, y: 100, width: 200, height: 300))
+        moveGestureView.backgroundColor = UIColor.blackColor()
+        moveGestureView.center = self.view.center
+        moveGestureView.userInteractionEnabled = true
+        moveGestureView.addGestureRecognizer(movingGesture)
+        self.view.addSubview(moveGestureView)
     }
 
     override func didReceiveMemoryWarning() {
